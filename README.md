@@ -10,7 +10,7 @@
 * Increase chances of Fab Labs and other community workshops making government approved installations
 * Generally lower the threshold for people worldwide to make safe and pedagogic installations of large format milling machines.
 * Avoid doublework in mapping out European rules for shopbot use
-* Develop methods that keep machine operators in contact with the machines. Our goal is to help people learn and master tools and technology. [????](https://en.wikipedia.org/wiki/Jinba_ittai) is a Japanese four-character compound describing unity of horse and rider
+* Develop methods that keep machine operators in contact with the machines. Our goal is to help people learn and master tools and technology. [Jinba ittai](https://en.wikipedia.org/wiki/Jinba_ittai) is a Japanese four-character compound describing unity of horse and rider
 
 ![Installation sketch](./img/ShopBot-safety-door-sketch.jpg)
 
@@ -24,8 +24,8 @@
 **#1** Some of the ShopBot electronics are not CE approved. Safety switch to the room must completely kill power. Killing power makes it neccessoary to re-home X, Y and Z axis after every entry.
 
 Solutions we are exploring:
-* Add permanent Z homing plate and end stop on Z axis up direction. This way we can add to our post-processors a homing routine for all axes before each job. *(similar to using most 3D printers)*
-* Or find a way to not have to kill power to all axes when entering the room. Demands swapping electronic components and possibly the controll software
+* **Stage 1** Add permanent Z homing plate and end stop on Z axis up direction. This way we can add to our post-processors a homing routine for all axes before each job. *(similar to using most 3D printers)*
+* **Stage 2** Find a way to not have to kill power to all axes when entering the room. Demands swapping electronic components and possibly the controll software
 
 **#2** Putting the operator outside the ShopBot room reduces the feeling and controll and insights into the machines operation.
 
@@ -42,20 +42,20 @@ Solutions we are exploring:
 Solutions we are exploring:
 * Make open plans Fab Lab operators can download and fabriate on the ShopBot itself. Doors, window frames, wall, ceilings, accoustic panels, camera dust skirt etc.
 * Make clear 2D drwaings theat can be used as for faster rpoject mangamgnet and planning when setting up new Fab Labs
-* compile a bill of materials (BOM) f components that meet EU regulations
+* Compile a bill of materials (BOM) of components that meet EU regulations
 
 
 ### Why is the ShopBot dangerous
 
 * Spinning bits can shatter and start fire
 * Moving mass can pinch
-* Fine dust particles can contminate lungs
+* Fine dust particles can contaminate lungs
 * Loud noise can damage hearing
 
 
 ### The accessories that ShopBot offer
 
-* Handlebars with switches *(apparenly not enough to make the machine approveable)*
+* Handlebars with switches *(apparently not enough to make the machine EU approvable)*
 * Keypad for remote controll
 
 ### General EU rules
