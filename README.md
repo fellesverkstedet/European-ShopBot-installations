@@ -47,8 +47,11 @@ Solutions we are exploring:
 
 ### Why is the ShopBot dangerous
 
-* Spinning bits....
-* Moving mass....
+* Spinning bits can shatter and start fire
+* Moving mass can pinch
+* Fine dust particles can contminate lungs
+* Loud noise can damage hearing
+
 
 ### The accessories that ShopBot offer
 
