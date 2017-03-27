@@ -13,6 +13,7 @@
 * Develop methods that keep machine operators in contact with the machines. Our goal is to help people learn and master tools and technology. [Jinba ittai](https://en.wikipedia.org/wiki/Jinba_ittai) is a Japanese four-character compound describing unity of horse and rider
 
 ![Installation sketch](./img/ShopBot-safety-door-sketch.jpg)
+*Sketch of installation. LEFT: CAM workstation  CENTER: Sliding door with power switch  RIGHT: Operators panel with live camera feed*
 
 ### The solution in a nutshell
 
@@ -41,7 +42,7 @@ Solutions we are exploring:
 
 Solutions we are exploring:
 * Make open plans Fab Lab operators can download and fabriate on the ShopBot itself. Doors, window frames, wall, ceilings, accoustic panels, camera dust skirt etc.
-* Make clear 2D drwaings theat can be used as for faster rpoject mangamgnet and planning when setting up new Fab Labs
+* Make clear 2D drawings that can be used as for faster project mangagemment and planning when setting up new Fab Labs
 * Compile a bill of materials (BOM) of components that meet EU regulations
 
 
