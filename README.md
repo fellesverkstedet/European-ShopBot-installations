@@ -26,6 +26,21 @@
 
 Solutions we are exploring:
 * **Stage 1** Add permanent Z homing plate and end stop on Z axis up direction. This way we can add to our post-processors a homing routine for all axes before each job. *(similar to using most 3D printers)*
+
+We are evaulting the following workflow:
+
+1. You place the material on the bed and insert your bit.
+2. You close the door and power is enabled to the machine
+3. You load the job without zeroing anything. The first lines of the ShopBot code coming out of your fusion/v-carve/mods/bark beetle post processor includes the following zeroing routine:
+4. Z axis up until end stop hit (end stop for Z needs to be retrofitted
+5. Regular home X Y with end stops
+6. Probe Z on a permanently fixed Z zero plate next to the bed
+7. You get prompted to start the spindle and press OK
+8. Job runs. You follow though the window and though the live feed on the camera inside the skirt
+9. Job ends with the machine driving to the back and you enter the room.
+
+Good thing is that we will never have to remind people to Zero X, Y and Z again. Bad thing is people need to learn to work with Zero point underneath the material and specify correct material thickness (you kind of need to get this right anyway though). The shopbot control software needs to  restart every time you you have opened the door. But rebooting the software is quick, and a small price to pay for not having to use the Z plate manually. It is still possible to jog the machine around, as long as the doors are closed.
+
 * **Stage 2** Find a way to not have to kill power to all axes when entering the room. Demands swapping electronic components and possibly the controll software
 
 **#2** Putting the operator outside the ShopBot room reduces the feeling and controll and insights into the machines operation.
