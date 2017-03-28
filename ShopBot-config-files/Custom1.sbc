@@ -1,0 +1,44 @@
+'Move to manual tool change postion
+'--------------------------------------------------------------------------
+
+'---------------------------------------------------------------------------
+'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
+'
+
+'Determine whether we are in Preview mode or Move/Cut mode
+&modenow = %(22)
+IF &modenow = 1 THEN GOSUB Changemode
+
+&start_Zmove_Speed = %(73)
+IF %(55) = 1 then goto Done 'already at max z
+
+'----------------------------------------------------------------Read the starting speed values to reset later
+VS, ,30 '... move up rapidly
+'---------------------------------------------------------------------------------------------------------------
+
+Check_Switch_Status:
+'Check status of current inputs to know if we have to clear switches
+
+SA 'Set tool to Absolute mode
+
+'Limits are deactivated here, automatically reset to original state when file ends
+VN, 0 'Deactivate the limit switch functionality on input #3
+SF, 0 'Deactivate software limits
+
+ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
+
+MZ, 400 ' be sure we go up far enough to hit the prox switch
+ZAtLimit:
+ON INPUT(5,1) 'this is where we'll go on contact with switch
+Done:
+VS, ,&start_Zmove_Speed
+
+J2,150,300		'Jog to a convenient position for manual tool change
+
+END
+
+'SUBROUTINES ---------------------------------------------------------------------------
+Changemode:
+'Tool cannot be detected in Preview Mode. Quit and change Move/Cut mode ...
+PAUSE
+END 'Exit program now

@@ -1,0 +1,53 @@
+'Move Z up to prox switch
+
+'-----------------------------------------------------------------------------
+'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
+'
+
+'Determine whether we are in Preview mode or Move/Cut mode
+&modenow = %(22)
+IF &modenow = 1 THEN GOSUB Changemode
+
+&start_Zmove_Speed = %(73)
+IF %(55) = 1 then goto Done 'already at max z
+
+'----------------------------------------------------------------Read the starting speed values to reset later
+VS, ,30 '... move up rapidly
+'---------------------------------------------------------------------------------------------------------------
+
+Check_Switch_Status:
+'Check status of current inputs to know if we have to clear switches
+
+SA 'Set tool to Absolute mode
+
+'Limits are deactivated here, automatically reset to original state when file ends
+VN, 0 'Deactivate the limit switch functionality on input #3
+SF, 0 'Deactivate software limits
+
+ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
+
+MZ, 400 ' be sure we go up far enough to hit the prox switch
+ZAtLimit:
+ON INPUT(5,1) 'this is where we'll go on contact with switch
+Done:
+VS, ,&start_Zmove_Speed
+END
+
+'SUBROUTINES ---------------------------------------------------------------------------
+Changemode:
+'Tool cannot be detected in Preview Mode. Quit and change Move/Cut mode ...
+PAUSE
+END 'Exit program now
+
+'-----------------------------------------------------------------------------
+' WHEN you're finished, SAVE this file AS CUSTOM_.SBC, where _ is a number
+'   from 1 to 99. Numbers 1 to 9 can be accessed with 2 keystrokes.
+'   All Custom Cuts can be called from files.
+'   Custom Cuts are the same thing as 'Macros'.
+'   You can Edit and these Custom Cut files anytime using [FE].
+' 
+' The Custom Cut List will be updated NEXT TIME time you start the ShopBot Software.
+' Currently active Custom Cuts are in the folder C:\SbParts\Custom ... have a look
+'   files there for examples.
+'
+' ... executing Custom Cut File

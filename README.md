@@ -32,11 +32,11 @@ We are evaulting the following workflow:
 1. You place the material on the bed and insert your bit.
 2. You close the door and power is enabled to the machine
 3. You load the job without zeroing anything. The first lines of the ShopBot code coming out of your fusion/v-carve/mods/bark beetle post processor includes the following zeroing routine:
-4. Z axis up until end stop hit (end stop for Z needs to be retrofitted
+4. Z axis up until end stop hit *(end stop for Z needs to be retrofitted)*
 5. Regular home X Y with end stops
 6. Probe Z on a permanently fixed Z zero plate next to the bed
 7. You get prompted to start the spindle and press OK
-8. Job runs. You follow though the window and though the live feed on the camera inside the skirt
+8. Job runs. You follow through the window and though the live feed on the camera inside the skirt
 9. Job ends with the machine driving to the back and you enter the room.
 
 Good thing is that we will never have to remind people to Zero X, Y and Z again. Bad thing is people need to learn to work with Zero point underneath the material and specify correct material thickness (you kind of need to get this right anyway though). The shopbot control software needs to  restart every time you you have opened the door. But rebooting the software is quick, and a small price to pay for not having to use the Z plate manually. It is still possible to jog the machine around, as long as the doors are closed.
@@ -78,5 +78,37 @@ Solutions we are exploring:
 
 ### Country specific rules
 
-### Resources and links
+### Extreal resources and links
+
+### Current resources and solutions
+
+* External switch for Z axis can be connected to input 5 on the ShopBot controll board. Can be read by ShopBot part files/scripts
+* The file [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) runs the an automatic homing routine. It was created by combinging a Shopots Home X Y script, Shopbots Zero Z script and move Z to custom end stop script by Dana Swift.
+* [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) first Zeroes X Y, then moves the head to the specified location of a fixed Z zero plate, than runs the Z Zero routine on the fixed plate and finsihes with moving the Z axis up to maxium position
+* [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) needs to placed in the C:\SbParts folder
+* You need to modify the post processor of your CAM program to to hav this as the firs line ~~~~FP,C:\SbParts\XYandZzero.sbp
+* [ShopBot_AutoHomeXYZ_Arc_MM_Spindle_Control.pp](./post-processors/v-carve/ShopBot_AutoHomeXYZ_Arc_MM_Spindle_Control.pp) is an example of a modified PostProcessor for V-Carve
+
+Files are set up and tested and used at your own risk. Be carefull
+
+### Known bugs
+
+ShopBot moved too fast at one point
+* Turning power off to the ShopBot control cabinet, then back on after short seem to corrput the speed settings
+* Closing the Sb3 application and resarting id reccomended if power has been off the control cabinet
+
+V-Carve does not autmatically adjust home start and end Z height when working with Z zero point bellow material
+
+### To do
+
+* next. make permanent homing plate.
+* make and test mount for z switch
+* fix wiring of z prox switch and z zero plate
+* aquire and test offical ShoBot poximyt switch *(current test switch is cheap and unrelibale in heavy dust environment)*
+* place zero plate in back of machine? reverese homing routine?
+* find definate couse of speed error
+* make spindle sart automatically?
+* make shopbot software auto close upon connection loss?
+* make custom4 for autozero only, not start a job -done
+* do general user testing
 

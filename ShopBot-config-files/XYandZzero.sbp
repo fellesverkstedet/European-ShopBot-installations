@@ -1,0 +1,528 @@
+' The following licensing information must accompany this file at all times.
+' ********** Licensing Information **********
+' Copyright 2001 - 2014 ShopBot Tools
+' We encourage ShopBot users to modify this part file to suit their own needs and have licensed it 
+' under the Creative Commons Atribution 3.0 license.  This license allows you to copy, distribute, 
+' or modify the file with certain restrictions. Any other use requires permission from ShopBot Tools.
+'
+' A simplified explanantion of this license is available at  
+' http://creativecommons.org/licenses/by/3.0/us/ 
+' and the full legal code can be found at 
+' http://creativecommons.org/licenses/by/3.0/us/legalcode
+' We encourage you to read this legal code before modifying or distributing  this file, 
+' ESPECIALLY sections 5 and 6 that cover warranties and liability.
+'
+' If you plan on distributing your new version, you must also state in the header of your file that it
+' is a modification of a file supplied by Shopbot Tools, supply information on finding the original file, 
+' and rename the file to make it clear to the user that it is a modified version. 
+' ********** End Licensing Information **********
+'
+'XYZERO.SBP -- Zero XY Axes with Proximity Switches
+'Copyright 1998-2014. ShopBot Tools, Inc.
+'----------------------------------------------------------------------------------------
+'*NOTE* This file will always be over-written during software update installations to insure
+'        it is kept standard and current.
+'*NOTE* If you want to make a custom version of this file that is called with the C3 Command
+'        you should save it with a different name, say "XYZERO_Joes_8_23_08.sbp", then change the
+'        C3 Command (found in C:\SbParts\Custom\Custom3.sbc to call your file rather than the
+'        standard file. You may need to update this Custom3.sbc file when you update software.
+'----------------------------------------------------------------------------------------
+'Table Base Coordinates Zeroed During Routine
+'Variables in this file are read from the my_variables.sbc file in c:\Sbparts\Custom
+'Recent updates by ShopBot:
+'  11/15/12 - Routine no longer tries to swap between measurement systems. If Setup (under 'T'ools in ShopBot)
+'             has configured my_variable.sbc file for inches, ZZERO will expect inches; IF mm then mm; *will attempt to spot error!
+'  11/15/12 - Now uses system SafeZ for pull-up (that is set in [VC])
+'   5/14/12 - Optionally make use of Z prox if installed
+'   6/01/14 - Pull-backs after contact modified for more reliable positioning with big offsets (JG)
+'   7/15/14 - Refactored (GAB) for consistency
+
+'Determine whether we are in Preview mode or Move/Cut mode
+   &modenow = %(22)
+   if &modenow = 1 THEN GOSUB Changemode
+
+'Load the custom variables file loaded by Custom Cut 90 (these are variable generated with Setup Tool)
+   C#,90
+'Zeroing Offsets were set in either inches or metric, this make sure we handle them correctly
+   &SCALE = 1 'set to a default value for case of working in correct units
+   &X_dist = (&my_XYzeroOffsetX * &SCALE)
+   &Y_dist = (&my_XYzeroOffsetY * &SCALE)
+'Confirm Spindles OFF
+   SO, 1, 0
+   SO, 2, 0
+
+'Get Speed Limits
+   IF %(25) = 0 THEN GOSUB GetInchSpeedLimits
+   IF %(25) = 1 THEN GOSUB GetMetricSpeedLimits
+
+
+   IF &my_units <> %(25) THEN GOSUB Changeunits
+
+'----------------------------------------------------------------Read the starting speed values to reset later  
+   &start_XYmove_Speed = %(71)
+   &start_XYjog_Speed = %(76)
+
+   &XYapproach_Speed = &start_XYmove_Speed
+   &XYtempJog_Speed = &start_XYjog_Speed
+   IF &XYapproach_Speed > &TopApproachSpeed THEN &XYapproach_Speed = &TopApproachSpeed
+   IF &XYtempJog_Speed > &TopJogSpeed THEN &XYtempJog_Speed = &TopJogSpeed
+
+   VS, &XYapproach_Speed,,,,&XYtempJog_Speed                    '... and assign slower speeds
+'---------------------------------------------------------------------------------------------------------------
+
+                            'This version of XYzero deals with only two possibilities ...
+   &SW2_SwitchType = %(92)  '  If #2 Input is 2, then we have (PRS) normally-closed switches on #2 and #3                  
+                            '  Otherwise, we have a (PRT) with normally-open switches on #3
+
+Check_Switch_Status:        '  ... will return to use this again if needed
+'Check status of current inputs to know if we have to clear switches
+   IF &my_hasZProx = 1 THEN GOSUB AskToReset
+   IF &SW2_SwitchType = 2 THEN GOTO Check_PRS
+  Check_PRT: 
+    &TrgtHIT = 1
+    &Xtrgt = 3
+    &Ytrgt = 3
+	&Ztrgt = 3
+    IF %(53) = &TrgtHIT THEN GOTO Getoffprox  
+    GoTo Start_Zeroing
+  Check_PRS: 
+    &TrgtHIT = 0
+    &Xtrgt = 2
+    &Ytrgt = 3
+	&Ztrgt = 5
+    IF %(52) = &TrgtHIT THEN GOTO Getoffprox  
+    IF %(53) = &TrgtHIT THEN GOTO Getoffprox
+
+Start_Zeroing:
+   SA     	'Set tool to Absolute mode
+
+'Limits are deactivated here, automatically reset to original state when file ends 
+   VN, 0                    'Deactivate the limit switch functionality on input #3
+   SF, 0                    'Deactivate software limits
+
+' Only move to safe Z position if it's above the current position
+   IF &my_hasZProx = 1 THEN GOTO Has_ZProx
+     &zup = %(28)             'Use SafeZ as set with [VC]
+     IF &zup = "" THEN &zup = 0
+     &z_minimum = &my_ZzeroThickness * 2   'If pull up not greater than thickness, just double thicknes
+     IF &zup < &z_minimum THEN &zup = &z_minimum
+
+     IF %(3) < &zup THEN MZ, &zup
+   Goto ZIsSafe
+
+Has_ZProx:
+    IF &ResetZ = 2 THEN GOTO ZIsSafe
+    &INP_Z = 50 + &Ztrgt
+	IF %(&INP_Z) = &TrgtHit THEN GOTO Getoffprox    
+    ON INP(&Ztrgt,&TrgtHIT) GOTO Zcontact
+      MZ, -1 * &big_move
+    MSGBOX (Error reaching Z prox switch!, OKONLY, PROX SWITCH ERROR)
+  END
+
+ZIsSafe:
+'Start Homing in the X axis
+  'First set the contact switch action ... 
+   ON INP(&Xtrgt,&TrgtHIT) GOTO Xcontact   'this is where we'll go on contact with switch 
+  'Then start the move in X (just a big negative number ... assumes we'll hit prox switch)
+   JX, &big_move
+     MSGBOX (Error reaching X prox switch!, OKONLY, PROX SWITCH ERROR)
+     END
+  ' ... we return here after handling X homing
+XComplete:          
+'Start Homing in the Y Axis
+  'First set the contact switch action ... 
+   ON INP(&Ytrgt,&TrgtHIT) GOTO YCONTACT   'this is where we'll go on contact with switch
+  'Then start the move in Y (just a big negative number ... assumes we'll hit prox switch)
+   JY, &big_move
+     MSGBOX (Error reaching Y prox switch!, OKONLY, PROX SWITCH ERROR)
+	 END
+  ' ... we return here after handling Y homing
+  ' ... and reset speeds
+YComplete:
+   VS, &start_XYmove_Speed,,,,&start_XYjog_Speed
+
+'-----------------------------------------Move to permanent Z plate position
+
+J2,70,-18     'Jog to X and Y postion for Z zeroing, center of permanent Zero plate
+
+
+'-----------------------------------------Z zero routine from ShopBot
+
+' The following licensing information must accompany this file at all times.
+' ********** Licensing Information ******************************************************
+' Copyright 2001 - 2014 ShopBot Tools
+' We encourage ShopBot users to modify this part file to suit their own needs and have licensed it 
+' under the Creative Commons Atribution 3.0 license.  This license allows you to copy, distribute, 
+' or modify the file with certain restrictions. Any other use requires permission from ShopBot Tools.
+'
+' A simplified explanantion of this license is available at  
+' http://creativecommons.org/licenses/by/3.0/us/ 
+' and the full legal code can be found at 
+' http://creativecommons.org/licenses/by/3.0/us/legalcode
+' We encourage you to read this legal code before modifying or distributing  this file, 
+' ESPECIALLY sections 5 and 6 that cover warranties and liability.
+'
+' If you plan on distributing your new version, you must also state in the header of your file that it
+' is a modification of a file supplied by Shopbot Tools, supply information on finding the original file, 
+' and rename the file to make it clear to the user that it is a modified version. 
+' ********** End Licensing Information **************************************************
+'
+'****************************************************************************************
+'ZZERO.SBP -- Zero Z Axis on Contact with Zeoring Plate
+'Copyright 1998-2014. ShopBot Tools, Inc.
+'----------------------------------------------------------------------------------------
+'*NOTE* This file will always be over-written during software update installations to insure
+'        it is kept standard and current.
+'*NOTE* If you want to make a custom version of this file that is called with the C2 Command
+'        you should save it with a different name, say "ZZERO_Joes_8_23_08.sbp", then change the
+'        C2 Command (found in C:\SbParts\Custom\Custom2.sbc to call your file rather than the
+'        standard file. You may need to update this Custom2.sbc file when you update software.
+'----------------------------------------------------------------------------------------
+'!!Table Base Coordinates are also Zeroed During Routine
+'Variables in this file are read from the my_variables.sbc file in c:\Sbparts\Custom
+'Recent Updates by ShopBot:
+'  11/15/12 - Routine no longer tries to swap between measurement systems. If Setup (under 'T'ools in ShopBot)
+'             has configured my_variable.sbc file for inches, ZZERO will expect inches; IF mm then mm; *will attempt to spot error!
+'  11/15/12 - Now uses system SafeZ for pull-up (that is set in [VC])
+'  8/20/13  - Adds speed downshift for XY to reduce packet size to allow a STOP on plunge
+'  3/12/14  - Includes new tests for Prox Switch on Z-axis
+'  7/18/14  - Refactored (GAB) for consistency
+
+
+'**TEST YOUR PLATE BY TAPPING IT AGAINST BIT --> SWITCH INDICATOR SHOULD ACTIVATE ON SCREEN
+
+'Initialize
+    SA,          'Let's be in Absolute Mode
+    SF,0         'Turn off limit checking temporarily here
+
+'Confirm Spindles OFF
+    SO, 1, 0
+    SO, 2, 0
+
+'Determine whether we are in Preview mode or Move/Cut mode
+    &modenow = %(22)
+    IF &modenow = 1 then GoTo CHANGEMODE
+
+'Load variables from my_variables.sbc, process called by Custom Cut 90
+    C#,90
+                            'This version of XYzero deals with only two possibilities ...
+   &SW2_SwitchType = %(92)  '  If #2 Input is 2, then we have (PRS) normally-closed switches on #2 and #3                  
+                            '  Otherwise, we have a (PRT) with normally-open switches on #3
+
+    VN, 0                   'Deactivate the limit switch functionality on input #3
+
+'INDIRECTLY - Make sure that the units are those used with the Set-Up Program and expected by my_variables.sbc
+    &zbot = &my_ZzeroThickness
+    GOSUB CheckPlateThickness                     'No longer trying to adjust for incorrect units; just quit IF plate seems incorrect
+
+   'Set thickness and pull-up distance
+	&zup = %(28)
+	IF &zup = "" THEN &zup = 0
+	IF &zup < &zbot THEN &zup = &Zbot * 2   'If pull up not greater than thickness, just double thickness
+
+   'Set a value for our first Z move
+    &big_plunge = %(3) - 50
+    IF %(25) = 1 THEN &big_plunge = %(3) - 254
+	&MoveZ = .125                            'For re-positioning after Z prox touch-off
+	IF %(25) = 1 THEN &MoveZ = 3
+
+   'Check to see if we should move to a zeroing location
+    IF &my_ZzeroStartX <> no THEN GOSUB STARTMOVE
+
+   'Save current speeds and set zeroing speed
+    &start_Zmove_Speed = %(73)
+    &start_XYmove_Speed = %(71)
+    &new_Zmove_Speed = .25
+    &new_XYmove_Speed = .25
+    IF %(25) = 1 THEN &new_Zmove_Speed = 6
+    IF %(25) = 1 THEN &new_XYmove_Speed = 6
+
+'----------------------------------------------------------------Zeroing PROGRAM 
+FIRST PLUNGE:
+'Make First Plunge... the following line will display first and wait for key stroke
+'            *** Hit ENTER When above plate and Ready to Zero ***
+    'PAUSE        
+    GOSUB TEST_CLEAR           'Test to make sure the plate is not already contacting or probe hooked up           
+               
+'Now set-up the contact switch action ... 
+    VS, &new_XYmove_Speed, (&new_Zmove_Speed * 2 ) 'Set XY speed to reduce packet size and distance to STOP
+    ON INP(&my_ZzeroInput,1) GOTO CONTACT1         'this is where we'll go on contact with plate      
+      MZ, &big_plunge                              'Start continuous plunge ... while looking for contact to occur 
+
+'If we don't contact anything for some reason we end up here
+    ON INP(&my_ZzeroInput,1)   'Turn off switch check
+    VS, &start_XYmove_Speed, &start_Zmove_Speed    'Reset Speeds because zeroing failed
+   'Zeroing Failed!
+    PAUSE
+  END                          'This END statement causes the program to end here IF no contact
+
+SECOND PLUNGE:
+'Make a Second Slower Plunge to get it really accurate
+    GOSUB TEST_CLEAR 'Check for clear again          
+	         
+'Set-up the second contact switch action ... 
+    VS, , &new_Zmove_Speed
+    &little_plunge = %(3) - (&Zbot + &zup)
+    ON INP(&my_ZzeroInput,1) GOTO CONTACT2 'this is where we'll go on contact with plate
+      MZ, &little_plunge         'Start continuous plunge ... looking for second contact to occur
+
+'If we don't contact anything for some reason we end up here
+    ON INP(&my_ZzeroInput,1)   'Turn off switch check
+    VS, &start_XYmove_Speed, &start_Zmove_Speed    'Reset Speeds because zeroing failed
+ 'Zeroing Failed!
+    PAUSE
+  END                          'This END statement causes the program to end here IF no contact
+
+
+GOSUB MOVETOPROXZ		'go the program that moves the Z axis up to max safe postion
+
+
+
+
+
+
+
+
+
+
+
+
+
+'END 	'NORMAL END ... This END statement causes the program to end here without
+            '  dropping through to subroutines
+
+
+'SUBROUTINES ---------------------------------------------------------------------------
+
+Xcontact:
+ 'This is our subroutine for action on hitting the switch
+   'We hit the prox switch! 
+     ON INP(&Xtrgt,&TrgtHIT)    'Set interrupt to nothing to turn off
+       &last_X_touch = %(1)     'Variable saved for debugging, view location with [UL] ...
+     VA, &X_dist                'Set approx position
+     PAUSE 1
+     JX, &move_off_switchX       'Move back out for another pass
+     ON INP(&Xtrgt,&TrgtHIT) GOTO Xagain
+     MX, &small_move + %(1)
+END
+  Xagain:
+     ON INP(&Xtrgt,&TrgtHIT)    'Set interrupt to nothing to turn off
+     VA,&X_dist,,,,,0           '>>>>>Set real position and Zero Table Base Coordinates
+     PAUSE 1
+     JX, 0                      'Jog X to park position (*could put another location here)
+  'X Axis now zeroed ...
+     PAUSE 1
+     GOTO XComplete                     'This RETURNs us to the next main file line
+
+
+Ycontact:
+ 'This is our subroutine for action on hitting the switch
+   'We hit the prox switch! 
+     ON INP(&Ytrgt,&TrgtHIT)    'Set interrupt to nothing to prevent secondary trigger
+       &last_Y_touch = %(2)     'Variable saved for debugging, view with [UL] ...
+     VA,, &Y_dist  'Set position
+     PAUSE 1
+     JY, &move_off_switchY       'Move back out for another pass
+     ON INP(&Ytrgt,&TrgtHIT) GOTO Yagain
+     MY, &small_move + %(2)
+END
+  Yagain:
+     ON INP(&Ytrgt,&TrgtHIT)    'Set interrupt to nothing to prevent secondary trigger
+     VA,,&Y_dist,,,,,0          '>>>>>Set real position and Zero Table Base Coordinates
+     PAUSE 1
+     JY, 0                      'Jog Y to park position (*could put another location here)
+  'Y Axis now zeroed ...
+     PAUSE 1
+     GOTO YComplete                     'This RETURNs us to the next main file line
+                                'interrupted by the switch
+
+Zcontact:
+ 'This is our subroutine for action touching off on the Z switch
+   'We hit the prox switch! 
+        ON INP(&Ztrgt,&TrgtHIT)
+		IF &ResetZ = 1 THEN VA,,,&my_XYzeroOffsetZ,,,,,0,,,
+		MZ, %(3)- &MoveZ
+   'Z Axis now zeroed ...        Based on Saved Value in my Variables; if new bit, this is not a true zero ...
+     PAUSE 1
+     GOTO ZIsSafe                     'This RETURNs us to the next main file line
+
+'SPECIAL SUBROUTINES -------------------------------------------------------------------
+Changemode:
+'Tool will not do XY Zeoring in Preview Mode. Quit and change Move/Cut mode ...
+    PAUSE 
+END                            'Exit program now
+
+Getoffprox:
+'Use Arrow Keys to move Off of Prox Switch (ESC when Clear)
+    PAUSE
+    SK
+ GOTO Check_Switch_Status       'Go Back to Re-check Status
+
+Changeunits:
+'You are using a different unit system (inches/millimeters) than you used when this program was set up. Do you want to change the settings?
+   PAUSE
+   IF %(25) = 1 THEN &SCALE = 25.4
+   IF %(25) = 0 THEN &SCALE = 0.03937
+RETURN
+
+AskToReset:
+	MSGBOX(Update Z location to last Z-Zero Measurement? (Yes-Update: No-Do Not Update: Cancel-Do Not use Z Prox ,YesNoCancel,"")
+	IF &msganswer = Yes THEN &ResetZ = 1
+	IF &msganswer = no THEN  &ResetZ = 0
+	IF &msganswer = Cancel THEN &ResetZ = 2
+RETURN
+
+GetInchSpeedLimits:
+   &TopApproachSpeed = 1.0
+   &TopJogSpeed = 3.5
+   &move_off_switchX = &X_dist + 1
+   &move_off_switchY = &Y_dist + 1
+   &big_move = -200
+   &small_move = -10
+   &MoveZ = .125
+RETURN
+
+GetMetricSpeedLimits:
+   &TopApproachSpeed = 25.4
+   &TopJogSpeed = 88.9
+   &move_off_switchX = &X_dist + 25.4
+   &move_off_switchY = &Y_dist + 25.4
+   &big_move = -5000
+   &small_move = -250
+   &MoveZ = 3
+RETURN
+
+'================================================================Subroutines for Z zero
+
+CONTACT1:
+'This is our subroutine for action on hitting the plate the first time
+    &first_Z_touch = %(3)  'Just a diagnostic variable; touch location can be checked with [UL]
+    VA,,,&zbot,,,,,0          'Set the approximate Z location based on thickness
+    PAUSE 1    
+    JZ, &zup                  'Pull-up SLIGHTLY ... 
+    'Now We're Ready to Make Slow Move for Accurate Reading
+    PAUSE 1
+  GOTO SECOND PLUNGE
+
+CONTACT2:
+'This is our subroutine for action on hitting the plate the second time
+    &second_Z_touch = %(3) 'Just a diagnostic variable that can be checked with [UL]
+    VA,,,&zbot,,,,,0          'Set final Z location AND Zero Table Base Coordinate
+    PAUSE 1
+    VS, &start_XYmove_Speed, &start_Zmove_Speed
+    JZ, &zup                  'Pull-up to safe height	
+    IF &my_hasZProx = 1 THEN GOTO Has_ZProx
+    '***ZEROED! REMEMBER TO REMOVE ALLIGATOR CLIP, AND PUT AWAY PLATE!***
+    'PAUSE
+  GOSUB MOVETOPROXZ
+
+Has_ZProx:
+'Check status of current inputs to know if we have to clear switches
+    IF &SW2_SwitchType = 2 THEN GOTO Check_PRS
+  Check_PRT: 
+        &TrgtHIT = 1
+	    &Ztrgt = 3
+      GoTo Status_Checked
+  Check_PRS: 
+        &TrgtHIT = 0
+	    &Ztrgt = 5
+Status_Checked:
+    &ZProx = &Ztrgt + 50
+    IF %(&ZProx) = &TrgtHIT THEN GOTO Getoffprox
+    ON INP(&Ztrgt,&TrgtHIT) GOTO PROX_CONTACT
+      MZ, -1 * &big_plunge
+    MSGBOX (Error reaching Z prox switch!, OKONLY, PROX SWITCH ERROR)
+  END
+
+PROX_CONTACT:
+    ON INP(&Ztrgt,&TrgtHIT)
+    &my_XYzeroOffsetZ = %(3)
+    MZ, %(3)- &MoveZ
+    SHELL, "C:\SbParts\Custom\MyVars.exe [&]my_XYzeroOffsetZ = &my_XYzeroOffsetZ"
+ 'Z Prox measured ...
+    PAUSE 1
+'***ZEROED! REMEMBER TO REMOVE ALLIGATOR CLIP, AND PUT AWAY PLATE!***
+    'PAUSE
+  END
+
+Getoffprox:
+'Use Arrow Keys to move Off of Prox Switch (ESC when Clear)
+    PAUSE
+    SK
+ GOTO Status_Checked       'Go Back to Re-check Status
+
+TEST_CLEAR:
+    &cleared = &my_ZzeroInput + 50
+    IF %(&cleared) = 1 THEN PAUSE 3
+    IF %(&cleared) = 1 THEN GOTO NO_CLEAR
+  RETURN
+
+NO_CLEAR:
+    'Reset the orginal Z speed
+    VS, &start_XYmove_Speed, &start_Zmove_Speed
+    'Z-contact did not clear. Check the location of alligator clip and plate. If cutting metal, try placing a sheet of paper between the material and the plate. Exiting Zzero!
+    PAUSE
+  END
+
+STARTMOVE:
+    IF &AllReadyThere = 1 THEN RETURN       'This variable produced in MTC routine if user offset used
+    'Hit OK to move to your preferred starting point to start the routine.
+    PAUSE
+    IF %(3) < &zup THEN JZ, &zup
+    J2, &my_ZzeroStartX, &my_ZzeroStartY
+  RETURN
+
+CheckPlateThickness:
+    IF %(25) = 1 THEN GOTO MT
+    IF %(25) = 0 THEN GOTO IT
+    'If the units are metric: check whether the plate thickness looks too thin
+    MT:
+        IF &Zbot < 1 THEN GOTO PlateIncorrect
+      RETURN
+    'If the units are in inches: check whether the plate thickness is too thick
+    IT:
+        IF &Zbot > 2 THEN GOTO PlateIncorrect
+      RETURN
+
+PlateIncorrect:
+    'Plate thickness may be incorrect due to selected units. Use Shopbot Setup [TS] in the tools menu to correct plate thickness or units for zeroing.
+    PAUSE
+  END
+
+CHANGEMODE:
+    'Tool won't home in Preview Mode. Quit and change Move/Cut mode ...
+    PAUSE 
+  END	
+
+'================================================================Subroutines for move to proximity switch on input5
+
+MOVETOPROXZ:
+	'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
+	'
+
+	&start_Zmove_Speed = %(73)
+	IF %(55) = 1 then goto Done 'already at max z
+
+	'----------------------------------------------------------------Read the starting speed values to reset later
+	VS, ,30 '... move up rapidly
+	'---------------------------------------------------------------------------------------------------------------
+
+	Check_Switch_Status:
+	'Check status of current inputs to know if we have to clear switches
+
+	SA 'Set tool to Absolute mode
+
+	'Limits are deactivated here, automatically reset to original state when file ends
+	VN, 0 'Deactivate the limit switch functionality on input #3
+	SF, 0 'Deactivate software limits
+
+	ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
+
+	MZ, 400 ' be sure we go up far enough to hit the prox switch
+	ZAtLimit:
+	ON INPUT(5,1) 'this is where we'll go on contact with switch
+	Done:
+	VS, ,&start_Zmove_Speed
+  END	
+
+

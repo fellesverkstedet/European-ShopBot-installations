@@ -1,0 +1,6 @@
+'Autohome X, Y and Z. Reuqires Z prox switch and permant Z zero plate
+'--------------------------------------------------------------------------
+'by Jens Dyvik 28.3.2017
+'---------------------------------------------------------------------------
+' ... executing Custom Cut File
+FP,C:\SbParts\XYandZzero.sbp
