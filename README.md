@@ -80,35 +80,49 @@ Solutions we are exploring:
 
 ### Extreal resources and links
 
-### Current resources and solutions
+### Current solution *(WIP)*
 
 * External switch for Z axis can be connected to input 5 on the ShopBot controll board. Can be read by ShopBot part files/scripts
 * The file [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) runs the an automatic homing routine. It was created by combinging a Shopots Home X Y script, Shopbots Zero Z script and move Z to custom end stop script by Dana Swift.
 * [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) first Zeroes X Y, then moves the head to the specified location of a fixed Z zero plate, than runs the Z Zero routine on the fixed plate and finsihes with moving the Z axis up to maxium position
 * [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) needs to placed in the C:\SbParts folder
-* You need to modify the post processor of your CAM program to to hav this as the firs line ~~~~FP,C:\SbParts\XYandZzero.sbp
+* You need to modify the post processor of your CAM program to to hav this as the first line: **FP,C:\SbParts\XYandZzero.sbp**
 * [ShopBot_AutoHomeXYZ_Arc_MM_Spindle_Control.pp](./post-processors/v-carve/ShopBot_AutoHomeXYZ_Arc_MM_Spindle_Control.pp) is an example of a modified PostProcessor for V-Carve
+* Custom1, Custom4 and Custom10 are scripts that can be convenient for experienced machine operators. Example: press C+4 on the keyboard to run Custom4, it will bring the machine to a convenient location for manual toolchange
 
-Files are set up and tested and used at your own risk. Be carefull
+Files are set up and tested and used at your own risk. Be carefull!
 
 ### Known bugs
 
 ShopBot moved too fast at one point
-* Turning power off to the ShopBot control cabinet, then back on after short seem to corrput the speed settings
-* Closing the Sb3 application and resarting id reccomended if power has been off the control cabinet
+* Turning power off to the ShopBot control cabinet, then quickly back on within about 5sec, seem to corrput the speed settings
+* Closing the Sb3 application and resarting is reccomended if power has been off the control cabinet
 
 V-Carve does not autmatically adjust home start and end Z height when working with Z zero point bellow material
+* But you will get a warning if Z home height is bellow safe Z height. Solution can be to allways have a high Home Z. Can be safe if a Z proximity switch is fully functional.
+
 
 ### To do
 
+**Technical**
 * next. make permanent homing plate.
 * make and test mount for z switch
 * fix wiring of z prox switch and z zero plate
-* aquire and test offical ShoBot poximyt switch *(current test switch is cheap and unrelibale in heavy dust environment)*
+* aquire and test offical ShoBot poximity switch *(current test switch is cheap and unrelibale in heavy dust environment)*
+* make Z proximity switch stop the axis when moving around?
 * place zero plate in back of machine? reverese homing routine?
 * find definate couse of speed error
-* make spindle sart automatically?
-* make shopbot software auto close upon connection loss?
-* make custom4 for autozero only, not start a job -done
+* make spindle start automatically?
 * do general user testing
+* make shopbot software auto close and restart upon connection loss?
+* make a previewer program that can preview toolpaths easily and automatically start and close SB3?
+
+**Signage**
+* Make overview of signage required in different countries
+* Make and add vector files in this repo of grphics that can be replicated in a lab
+
+**Documentation**
+* Make info more overvieble
+* Collect and add external links
+
 
