@@ -109,7 +109,8 @@ V-Carve does not autmatically adjust home start and end Z height when working wi
 * make and test mount for z switch
 * fix wiring of z prox switch and z zero plate
 * aquire and test offical ShoBot poximity switch *(current test switch is cheap and unrelibale in heavy dust environment)*
-* make Z proximity switch stop the axis when moving around?
+* make Z proximity switch stop the Z axis when moving up
+* aquire and test offical elctricty braker for sliding doors
 * place zero plate in back of machine? reverese homing routine?
 * find definate couse of speed error
 * make spindle start automatically?
@@ -123,6 +124,7 @@ V-Carve does not autmatically adjust home start and end Z height when working wi
 
 **Documentation**
 * Make info more overvieble
+* Make BOM *(Bill of materials)*
 * Collect and add external links
 
 
