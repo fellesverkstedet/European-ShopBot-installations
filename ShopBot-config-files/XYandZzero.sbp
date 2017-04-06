@@ -41,6 +41,12 @@
    &modenow = %(22)
    if &modenow = 1 THEN GOSUB Changemode
 
+'----------------------------------------------------------------------------------------
+GOSUB MOVETOPROXZ		'go the program that moves the Z axis up to max safe postion
+'----------------------------------------------------------------------------------------
+J2,0,0     'Jog to what the machine thinks is X and Y zero, good for saving time
+'----------------------------------------------------------------------------------------
+
 'Load the custom variables file loaded by Custom Cut 90 (these are variable generated with Setup Tool)
    C#,90
 'Zeroing Offsets were set in either inches or metric, this make sure we handle them correctly
@@ -278,17 +284,7 @@ GOSUB MOVETOPROXZ		'go the program that moves the Z axis up to max safe postion
 
 
 
-
-
-
-
-
-
-
-
-
-
-'END 	'NORMAL END ... This END statement causes the program to end here without
+END 	'NORMAL END ... This END statement causes the program to end here without
             '  dropping through to subroutines
 
 
@@ -523,6 +519,6 @@ MOVETOPROXZ:
 	ON INPUT(5,1) 'this is where we'll go on contact with switch
 	Done:
 	VS, ,&start_Zmove_Speed
-  END	
+  RETURN	
 
 
