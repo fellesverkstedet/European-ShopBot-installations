@@ -41,7 +41,7 @@ We are evaulting the following workflow:
 
 Good thing is that we will never have to remind people to Zero X, Y and Z again. Bad thing is people need to learn to work with Zero point underneath the material and specify correct material thickness (you kind of need to get this right anyway though). The shopbot control software needs to  restart every time you you have opened the door. But rebooting the software is quick, and a small price to pay for not having to use the Z plate manually. It is still possible to jog the machine around, as long as the doors are closed.
 
-* **Stage 2** Find a way to not have to kill power to all axes when entering the room. Demands swapping electronic components and possibly the controll software
+* **Stage 2** Potentially find a way to not have to kill power to all axes when entering the room. Demands swapping electronic components and possibly the controll software
 
 **#2** Putting the operator outside the ShopBot room reduces the feeling and controll and insights into the machines operation.
 
