@@ -92,6 +92,10 @@ Solutions we are exploring:
 
 Files are set up and tested and used at your own risk. Be carefull!
 
+Lines to edit for custom setup:
+* Line **399**: Change value to so that Z zero will be at top of sacrafacial layer.
+* Line **152**: Set the coordiantes of the center of your fixed Z zero plate
+
 ### Known bugs
 
 ShopBot moved too fast at one point

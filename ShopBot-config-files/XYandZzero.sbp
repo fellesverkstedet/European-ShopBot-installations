@@ -149,7 +149,7 @@ YComplete:
 
 '-----------------------------------------Move to permanent Z plate position
 
-J2,70,-18     'Jog to X and Y postion for Z zeroing, center of permanent Zero plate
+J2,233,-18     'Jog to X and Y postion for Z zeroing, center of permanent Zero plate
 
 
 '-----------------------------------------Z zero routine from ShopBot
@@ -280,13 +280,6 @@ SECOND PLUNGE:
   END                          'This END statement causes the program to end here IF no contact
 
 
-GOSUB MOVETOPROXZ		'go the program that moves the Z axis up to max safe postion
-
-
-
-END 	'NORMAL END ... This END statement causes the program to end here without
-            '  dropping through to subroutines
-
 
 'SUBROUTINES ---------------------------------------------------------------------------
 
@@ -403,14 +396,14 @@ CONTACT1:
 CONTACT2:
 'This is our subroutine for action on hitting the plate the second time
     &second_Z_touch = %(3) 'Just a diagnostic variable that can be checked with [UL]
-    VA,,,&zbot,,,,,0          'Set final Z location AND Zero Table Base Coordinate
+    VA,,,-3.34,,,,,0          'Set final Z location AND Zero Table Base Coordinate
     PAUSE 1
     VS, &start_XYmove_Speed, &start_Zmove_Speed
     JZ, &zup                  'Pull-up to safe height	
     IF &my_hasZProx = 1 THEN GOTO Has_ZProx
     '***ZEROED! REMEMBER TO REMOVE ALLIGATOR CLIP, AND PUT AWAY PLATE!***
     'PAUSE
-  GOSUB MOVETOPROXZ
+  GOSUB MOVETOPROXZEND
 
 Has_ZProx:
 'Check status of current inputs to know if we have to clear switches
@@ -490,7 +483,7 @@ CHANGEMODE:
     PAUSE 
   END	
 
-'================================================================Subroutines for move to proximity switch on input5
+'====================================Subroutines for move to proximity switch on input5
 
 MOVETOPROXZ:
 	'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
@@ -519,6 +512,36 @@ MOVETOPROXZ:
 	ON INPUT(5,1) 'this is where we'll go on contact with switch
 	Done:
 	VS, ,&start_Zmove_Speed
-  RETURN	
+  RETURN
+
+MOVETOPROXZEND:
+	'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
+	'
+
+	&start_Zmove_Speed = %(73)
+	IF %(55) = 1 then goto Done 'already at max z
+
+	'----------------------------------------------------------------Read the starting speed values to reset later
+	VS, ,30 '... move up rapidly
+	'---------------------------------------------------------------------------------------------------------------
+
+	Check_Switch_Status:
+	'Check status of current inputs to know if we have to clear switches
+
+	SA 'Set tool to Absolute mode
+
+	'Limits are deactivated here, automatically reset to original state when file ends
+	VN, 0 'Deactivate the limit switch functionality on input #3
+	SF, 0 'Deactivate software limits
+
+	ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
+
+	MZ, 400 ' be sure we go up far enough to hit the prox switch
+	ZAtLimit:
+	ON INPUT(5,1) 'this is where we'll go on contact with switch
+	Done:
+	VS, ,&start_Zmove_Speed
+  END
+
 
 
