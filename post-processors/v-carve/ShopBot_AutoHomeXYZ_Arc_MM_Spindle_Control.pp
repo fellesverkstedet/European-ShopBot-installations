@@ -105,7 +105,7 @@ begin HEADER
 "'Tool Name   = [TOOLNAME]"
 "MS,[FC],[FP]"
 "JZ,[ZH]"
-"J2,[XH],[YH]"
++"J2,[XH],[YH]" commented out this line to skip jog home at begining of file
 
 
 
