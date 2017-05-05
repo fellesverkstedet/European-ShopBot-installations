@@ -2,8 +2,8 @@
 
 ### The case
 
-* ShopBot milling machines are not certified for public use in most eurpoean countries
-* Most Fab Labs and other community workshops have funding and operational restraints that requires EU regulations to be followed
+* ShopBot milling machines are not certified for public use in european countries
+* Most Fab Labs and other community workshops have funding and operational restraints that require EU regulations to be followed
 
 ### Our goals
 
