@@ -1,4 +1,22 @@
-PAUSE 1
+'This script is for autohoming both X Y and Z axis. It intended to be run at the begiiing of every job.
+
+'Requirements:
+'A Z axis proximity switch, connected to on input 5
+'Z colibration plate montd on the side of the machine bed (connected to input 1, same as the hand held Z zero plate)
+
+'You need to fill in the correct values for these variables:
+
+&Zplatecorrection = -1.34   'The height difference between your Z clabration plate and the surface of your machine bed. Should alwyas be  a negative value (because the calibration plate should be mounted lower than the machine bed)
+&ZplatepositionX = 233		'The X axis distance from the X home postion to the place on your Z calbration you want your bit to touch during auto Z zero
+&ZplatepositionY = -18		'The Y axis distance from the Y home postion to the place on your Z calbration you want your bit to touch during auto Z zero
+
+&Ztrgt = 5                  'Input number for Z prox swtich on prs-alpha
+&TrgtHIT = 0                'Set to 0 when using official shopbot inductive switch, 1 when using cheap stanard switch (closed upon contact) 
+&MoveBackDownBy = 2		    'The distance to move down a litle bit to clear Z proximity switch
+
+
+
+INPUT "What is your material thickness in mm?" &Materialthickness
 ' The following licensing information must accompany this file at all times.
 ' ********** Licensing Information **********
 ' Copyright 2001 - 2014 ShopBot Tools
@@ -150,7 +168,7 @@ YComplete:
 
 '-----------------------------------------Move to permanent Z plate position
 
-J2,233,-18     'Jog to X and Y postion for Z zeroing, center of permanent Zero plate
+J2,&ZplatepositionX,&ZplatepositionY     'Jog to X and Y postion for Z zeroing, center of permanent Zero plate
 
 
 '-----------------------------------------Z zero routine from ShopBot
@@ -397,7 +415,7 @@ CONTACT1:
 CONTACT2:
 'This is our subroutine for action on hitting the plate the second time
     &second_Z_touch = %(3) 'Just a diagnostic variable that can be checked with [UL]
-    VA,,,-3.34,,,,,0          'Set final Z location AND Zero Table Base Coordinate
+    VA,,,(&Zplatecorrection - &Materialthickness),,,,,0          'Set final Z location AND Zero Table Base Coordinate
     PAUSE 1
     VS, &start_XYmove_Speed, &start_Zmove_Speed
     JZ, &zup                  'Pull-up to safe height	
@@ -487,61 +505,39 @@ CHANGEMODE:
 '====================================Subroutines for move to proximity switch on input5
 
 MOVETOPROXZ:
-	'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
-	'
+	'Move to up to Z poximity switch. Based upon: Routine to Manually Set Offset Height for Z-Prox Switch Zeroing (Useful for Handibots without ZZero)
+	'Modified by Jens Dyvik 16/5-2017
 
-	&start_Zmove_Speed = %(73)
-	IF %(55) = 1 then goto Done 'already at max z
+	'Initialize
+	SF,0                                          'Turn off limit checking temporarily here
+	'Confirm Spindles OFF
+	SO, 1, 0
+	SO, 2, 0
+	VN, 0                                         'Deactivate the limit switch functionality on input #3
+  
 
-	'----------------------------------------------------------------Read the starting speed values to reset later
-	VS, ,30 '... move up rapidly
-	'---------------------------------------------------------------------------------------------------------------
-
-	Check_Switch_Status:
-	'Check status of current inputs to know if we have to clear switches
-
-	SA 'Set tool to Absolute mode
-
-	'Limits are deactivated here, automatically reset to original state when file ends
-	VN, 0 'Deactivate the limit switch functionality on input #3
-	SF, 0 'Deactivate software limits
-
-	ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
-
-	MZ, 400 ' be sure we go up far enough to hit the prox switch
-	ZAtLimit:
-	ON INPUT(5,1) 'this is where we'll go on contact with switch
-	Done:
-	VS, ,&start_Zmove_Speed
+	'NOW... Go to Work >>>> Make Move from where we are to Z Prox 
+	ON INP(&Ztrgt,&TrgtHIT) MZ, %(3)- &MoveBackDownBy 'Move down a litle bit to clear switch
+	MZ, 300                                         ' ... arbitrary height just to make sure we hit top
+	
   RETURN
 
 MOVETOPROXZEND:
-	'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
-	'
+	'Move to up to Z poximity switch. Based upon: Routine to Manually Set Offset Height for Z-Prox Switch Zeroing (Useful for Handibots without ZZero)
+	'Modified by Jens Dyvik 16/5-2017
 
-	&start_Zmove_Speed = %(73)
-	IF %(55) = 1 then goto Done 'already at max z
+	'Initialize
+	SF,0                                          'Turn off limit checking temporarily here
+	'Confirm Spindles OFF
+	SO, 1, 0
+	SO, 2, 0
+	VN, 0                                         'Deactivate the limit switch functionality on input #3
+  
 
-	'----------------------------------------------------------------Read the starting speed values to reset later
-	VS, ,30 '... move up rapidly
-	'---------------------------------------------------------------------------------------------------------------
+	'NOW... Go to Work >>>> Make Move from where we are to Z Prox 
+	ON INP(&Ztrgt,&TrgtHIT) MZ, %(3)- &MoveBackDownBy 'Move down a litle bit to clear switch
+	MZ, 300                                         ' ... arbitrary height just to make sure we hit top
 
-	Check_Switch_Status:
-	'Check status of current inputs to know if we have to clear switches
-
-	SA 'Set tool to Absolute mode
-
-	'Limits are deactivated here, automatically reset to original state when file ends
-	VN, 0 'Deactivate the limit switch functionality on input #3
-	SF, 0 'Deactivate software limits
-
-	ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
-
-	MZ, 400 ' be sure we go up far enough to hit the prox switch
-	ZAtLimit:
-	ON INPUT(5,1) 'this is where we'll go on contact with switch
-	Done:
-	VS, ,&start_Zmove_Speed
   END
 
 

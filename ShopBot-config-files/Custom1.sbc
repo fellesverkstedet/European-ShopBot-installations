@@ -1,44 +1,30 @@
-'Move to manual tool change postion
-'--------------------------------------------------------------------------
+'Move to up to Z poximity switch and jog to manual toolchange position. Based upon: Routine to Manually Set Offset Height for Z-Prox Switch Zeroing (Useful for Handibots without ZZero)
+'Modified by Jens Dyvik 16/5-2017
 
-'---------------------------------------------------------------------------
-'Z Maximum.SBP -- DSwift - edited by Jens Dyvik - units in mm!
-'
+'Initialize
+   SF,0                                          'Turn off limit checking temporarily here
+'Confirm Spindles OFF
+   SO, 1, 0
+   SO, 2, 0
+   VN, 0                                         'Deactivate the limit switch functionality on input #3
+'Create a few useful variables
+   &Ztrgt = 5                                    'Input for Z prox swtich on prs-alpha
+   &TrgtHIT = 0                                  'Set to 0 when using official shopbot inductive switch, 1 when using cheap stanard switch (closed upon contact) 
+   &MoveBackDownBy = 2  
 
-'Determine whether we are in Preview mode or Move/Cut mode
-&modenow = %(22)
-IF &modenow = 1 THEN GOSUB Changemode
+'NOW... Go to Work >>>> Make Move from where we are to Z Prox 
+   ON INP(&Ztrgt,&TrgtHIT) GoSub Z_IsTopped
+   MZ, 300                                         ' ... arbitrary height just to make sure we hit top
+END                                              'Leave program if no hit! 
 
-&start_Zmove_Speed = %(73)
-IF %(55) = 1 then goto Done 'already at max z
+'SUBROUTINES============================================================================================
 
-'----------------------------------------------------------------Read the starting speed values to reset later
-VS, ,30 '... move up rapidly
-'---------------------------------------------------------------------------------------------------------------
-
-Check_Switch_Status:
-'Check status of current inputs to know if we have to clear switches
-
-SA 'Set tool to Absolute mode
-
-'Limits are deactivated here, automatically reset to original state when file ends
-VN, 0 'Deactivate the limit switch functionality on input #3
-SF, 0 'Deactivate software limits
-
-ON INPUT(5,1) GOSUB ZAtLimit 'this is where we'll go on contact with switch
-
-MZ, 400 ' be sure we go up far enough to hit the prox switch
-ZAtLimit:
-ON INPUT(5,1) 'this is where we'll go on contact with switch
-Done:
-VS, ,&start_Zmove_Speed
+Z_IsTopped:
+		ON INP(&Ztrgt,&TrgtHIT)
+		'&my_XYzeroOffsetZ = %(3)
+		MZ, %(3)- &MoveBackDownBy 'Move down a litle bit to clear switch  
 
 J2,150,300		'Jog to a convenient position for manual tool change
 
 END
 
-'SUBROUTINES ---------------------------------------------------------------------------
-Changemode:
-'Tool cannot be detected in Preview Mode. Quit and change Move/Cut mode ...
-PAUSE
-END 'Exit program now
