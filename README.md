@@ -12,7 +12,7 @@
 * Avoid doublework in mapping out European rules for shopbot use
 * Develop methods that keep machine operators in contact with the machines. Our goal is to help people learn and master tools and technology. [Jinba ittai](https://en.wikipedia.org/wiki/Jinba_ittai) is a Japanese four-character compound describing unity of horse and rider
 
-![Installation sketch](./img/ShopBot-safety-door-sketch.jpg)
+![Installation sketch](./img/ShopBot-safety-door-sketch.jpg)	
 *Sketch of installation. LEFT: CAM workstation  CENTER: Sliding door with power switch  RIGHT: Operators panel with live camera feed*
 
 ### The solution in a nutshell
