@@ -2,7 +2,7 @@
 
 ### The case
 
-* ShopBot milling machines are not certified for public use in european countries
+* Large format milling machines need special installation to be certified for public use in european countries
 * Most Fab Labs and other community workshops have funding and operational restraints that require EU regulations to be followed
 
 ### Our goals
@@ -12,8 +12,8 @@
 * Avoid doublework in mapping out European rules for shopbot use
 * Develop methods that keep machine operators in contact with the machines. Our goal is to help people learn and master tools and technology. [Jinba ittai](https://en.wikipedia.org/wiki/Jinba_ittai) is a Japanese four-character compound describing unity of horse and rider
 
-![Installation sketch](./img/ShopBot-safety-door-sketch.jpg)	
-*Sketch of installation. LEFT: CAM workstation  CENTER: Sliding door with power switch  RIGHT: Operators panel with live camera feed*
+![Mockeup test](./img/Mockup-first-wall-test.jpg)	
+*1:1 mockup for testing function and ergonomics of current design*
 
 ### The solution in a nutshell
 
@@ -109,16 +109,16 @@ V-Carve does not autmatically adjust home start and end Z height when working wi
 ### To do
 
 **Technical**
-* next. make permanent homing plate.
-* make and test mount for z switch
-* fix wiring of z prox switch and z zero plate
-* aquire and test offical ShoBot poximity switch *(current test switch is cheap and unrelibale in heavy dust environment)*
-* make Z proximity switch stop the Z axis when moving up
+* next. make permanent homing plate - DONE.
+* make and test mount for z switch - DONE
+* fix wiring of z prox switch and z zero plate - DONE
+* aquire and test offical ShoBot poximity switch *(current test switch is cheap and unrelibale in heavy dust environment)* DONE, works well on Z axis
+* make Z proximity switch stop the Z axis when moving up DONE
 * aquire and test offical elctricty braker for sliding doors
 * place zero plate in back of machine? reverese homing routine?
 * find definate couse of speed error
 * make spindle start automatically?
-* do general user testing
+* do general user testing - testing so far is very postivie
 * make shopbot software auto close and restart upon connection loss?
 * make a previewer program that can preview toolpaths easily and automatically start and close SB3?
 
