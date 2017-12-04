@@ -1,0 +1,5 @@
+&zup = %(28)  'make our safe Z the same as in the safe Z specified in ShopBot control
+
+INPUT "What is your material thickness in mm?" &Materialthickness	'ask the machine operator for current material thickness
+JZ,(&Materialthickness + &zup)										'move to Z axis to material top of material + Z home postion
+VA,,,&zup,,,,,0														'tell controller that the current postion is ZH home position (thereby making top of material our new Z Zero)

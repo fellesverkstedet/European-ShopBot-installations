@@ -1,6 +1,9 @@
-'Autohome X, Y and Z. Reuqires Z prox switch and permant Z zero plate
+'Autohome X, Y and Z
+'Requires Z prox switch and permant Z zero plate
 '--------------------------------------------------------------------------
 'by Jens Dyvik 28.3.2017
 '---------------------------------------------------------------------------
 ' ... executing Custom Cut File
-FP,C:\SbParts\XYandZzero.sbp
+FP,C:\SbParts\XYandZzero_Zzero_bellow_material.sbp	'run the autohome script that sets X, Y and Z zero
+
+FP,C:\SbParts\set_Z_zero_to_top_of_material.sbp	'run the script that sets Z zero above material. User inputs material thickness
