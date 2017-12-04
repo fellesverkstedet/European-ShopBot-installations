@@ -21,7 +21,7 @@
 +------------------------------------------------
 
 
-POST_NAME = "ShopBot AutohomeXYZ (arcs)(MM)(w/speed)(*.sbp)"
+POST_NAME = "ShopBot AutohomeXYZ with material thickness offset (arcs)(MM)(w/speed)(*.sbp)"
 
 FILE_EXTENSION = "sbp"
 
@@ -77,6 +77,12 @@ var Z_HOME_POSITION = [ZH|A||1.6]
 VAR ARC_CENTRE_I_INC_POSITION = [I|A||1.6]
 VAR ARC_CENTRE_J_INC_POSITION = [J|A||1.6]
 
++------------------------------------------------
++ Material thicknes, for offsett Z zero upwards after probing.
++------------------------------------------------
+
+var Z_LENGTH = [ZLENGTH|A||1.2]
+
 +================================================
 +                                                
 +    Block definitions for toolpath output       
@@ -89,7 +95,12 @@ VAR ARC_CENTRE_J_INC_POSITION = [J|A||1.6]
 
 
 begin HEADER
- "FP,C:\SbParts\XYandZzero.sbp 		'load the file that automatically sets X, Y and Z Zero"
+ "FP,C:\SbParts\XYandZzero_Zzero_bellow_material.sbp 	'load the file that automatically sets X, Y and Z Zero"
+ "JZ,([ZLENGTH] + [ZH])									'move to Z axis to material top of material + Z home postion"
+ "VA,,,[ZH],,,,,0										'tell controller that the current postion is ZH home position (thereby making top of material our new Z Zero)"
+ "&Materialthickness = [ZLENGTH]						'make a variable for material thickness based on the user input at the start of a v-carve files"
+ "MSGBOX (Is your material thickness &Materialthickness mm?, YesNo, SAFETY CHECK)	'create a pop-up dialog asking for confirmation of material thickness"
+ "IF &msganswer = NO THEN GOSUB Canceljob				'if material thickness is wrong, go to the cancel job sub routine with a pop up message of shame"
  "'SHOPBOT FILE IN MM"
  "IF %(25)=0 THEN GOTO UNIT_ERROR	'check to see software is set to standard"
  "C#,90				 	'Lookup offset values"
@@ -182,5 +193,8 @@ begin FOOTER
 "UNIT_ERROR:"				
 "C#,91					'Run file explaining unit error"
 "END"
+"Canceljob:	'define the name of the sub routine"
+"	MSGBOX (Please specificy the correct material thickness in you CAM program and try again,16,Shame on you)	'define the message box of shame"
+"END	'end the job"
 
 
