@@ -86,7 +86,7 @@ Solutions we are exploring:
 * The file [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) runs the an automatic homing routine. It was created by combinging a Shopots Home X Y script, Shopbots Zero Z script and move Z to custom end stop script by Dana Swift.
 * [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) first Zeroes X Y, then moves the head to the specified location of a fixed Z zero plate, than runs the Z Zero routine on the fixed plate and finsihes with moving the Z axis up to maxium position
 * [XYandZzero.sbp](./ShopBot-config-files/XYandZzero.sbp) needs to placed in the C:\SbParts folder
-* You need to modify the post processor of your CAM program to to hav this as the first line: **FP,C:\SbParts\XYandZzero.sbp**
+* You need to modify the post processor of your CAM program to have this as the first line: **FP,C:\SbParts\XYandZzero.sbp**
 * [ShopBot_AutoHomeXYZ_Arc_MM_Spindle_Control.pp](./post-processors/v-carve/ShopBot_AutoHomeXYZ_Arc_MM_Spindle_Control.pp) is an example of a modified PostProcessor for V-Carve
 * Custom1, Custom4 and Custom10 are scripts that can be convenient for experienced machine operators. Example: press C+4 on the keyboard to run Custom4, it will bring the machine to a convenient location for manual toolchange
 
